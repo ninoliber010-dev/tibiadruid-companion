@@ -36,6 +36,17 @@ QSizeGrip {{ background: transparent; width: 12px; height: 12px; }}
 """
 
 
+class ElidedLabel(QLabel):
+    """Label that shortens its text with "…" instead of clipping it."""
+
+    def paintEvent(self, _event) -> None:  # noqa: N802
+        p = QPainter(self)
+        p.setPen(self.palette().color(self.foregroundRole()))
+        text = self.fontMetrics().elidedText(self.text(), Qt.ElideRight, self.width())
+        p.drawText(self.rect(), int(Qt.AlignLeft | Qt.AlignVCenter), text)
+        p.end()
+
+
 class Section(QWidget):
     def __init__(self, title: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -81,7 +92,7 @@ class HudWindow(QWidget):
 
         # Header ------------------------------------------------------------------
         header = QHBoxLayout()
-        header.setSpacing(6)
+        header.setSpacing(4)
         self.title = QLabel()
         self.title.setPixmap(app_icon().pixmap(18, 18))
         self.title.setToolTip("Druid Companion")
@@ -89,7 +100,7 @@ class HudWindow(QWidget):
         self.mode_badge.setObjectName("HudBadge")
         self.mode_badge.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.source_dot = QLabel("●")
-        self.source_label = QLabel("Not running")
+        self.source_label = ElidedLabel("Not running")
         self.source_label.setObjectName("HudDim")
         self.source_label.setMinimumWidth(10)
         self.source_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
