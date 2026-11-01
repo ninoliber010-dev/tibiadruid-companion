@@ -35,7 +35,10 @@ class DiagnosticsPage(Page):
         env.body.addLayout(f)
         open_btn = QPushButton("Open data folder")
         open_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(ctx.paths.root))))
-        env.body.addWidget(open_btn)
+        open_row = QHBoxLayout()
+        open_row.addWidget(open_btn)
+        open_row.addStretch(1)
+        env.body.addLayout(open_row)
         self.content.addWidget(env)
 
         dbc = Card("Database")
