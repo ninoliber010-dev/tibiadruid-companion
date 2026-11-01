@@ -16,7 +16,7 @@ and a warning is written to the log.
 | Backups to keep | 10 | 1–100 |
 | Log level | INFO | DEBUG / INFO / WARNING / ERROR |
 
-## Floating HUD (used from Phase 2)
+## Floating HUD
 Width 220–900 px, height 120–1400 px, opacity 0.30–1.00, layout compact/expanded, always on top,
 click-through, section visibility (player, party, combat, recommendations, session), text size
 0.8–1.6×. Position is saved automatically when you move the HUD.
@@ -35,10 +35,16 @@ click-through, section visibility (player, party, combat, recommendations, sessi
 Screen regions (health, mana, creatures, battle list, party) are stored in the
 `recognition_regions` table with the client size at calibration time.
 
-## Notifications (used from Phase 2)
+## Notifications
 Enabled, quiet mode, critical-ignores-quiet, sounds on/off, volume 0–100 %, toast duration
 1–30 s, repeat cooldown 0–300 s, per-priority visibility and sound (none/soft/chime/alarm), and
 per-category switches (healing, mana, party, combat, session & routes, recognition).
+
+Behaviour: an alert is announced when it first appears and again if it escalates. Critical alerts
+that stay active repeat after the cooldown. An alert that disappears and comes back within the
+cooldown is not repeated. Quiet mode mutes sounds and hides normal/elevated alerts (critical
+alerts still show if "Critical alerts ignore quiet mode" is on). Sound files are generated into
+`<data folder>\sounds\` on first start.
 
 ## Party
 Partner name, monitor partner (duo), partner position in the party list (1–10).
@@ -57,4 +63,5 @@ They are starting points, not advice; verify spell names and adjust every thresh
 | Duo | partner | spell | Exura Sio | health | 70 % | elevated |
 | Duo | partner | warning | Partner critical | health | 35 % | critical |
 
-The rule editor arrives in Phase 4.
+These rules already drive the HUD recommendations (try them with the simulation). The rule
+editor arrives in Phase 4.

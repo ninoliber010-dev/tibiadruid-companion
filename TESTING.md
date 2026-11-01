@@ -14,6 +14,20 @@ needed. On minimal Linux images Qt needs `libegl1 libgl1 libxkbcommon0 libfontco
 | `tests/ui/` | Main window navigation, settings forms, diagnostics, GUI-thread dispatch |
 | `tests/fixtures/` | Synthetic screenshots and sample datasets (from Phase 3) |
 
+## Phase 2 coverage (64 tests, 125 in total)
+* **Notifications**: announce-once, escalation, flicker suppression, critical reminders, quiet mode,
+  categories/priorities, sound selection and volume, one-off cooldown, valid WAV generation.
+* **Healing engine**: every threshold boundary (strictly below), escalation by warning rules,
+  potion vs warning, low confidence and missing data give no advice, disabled rules, duo-only
+  partner advice, sorting, publishing, compatibility with the seeded default rules.
+* **Simulation**: values in range, determinism, each scenario produces its intended condition.
+* **HUD view-model**: nothing shown as fact before data, threshold-based colours, low confidence,
+  stale data hidden, partner, creatures/trends, monitoring timer, window-problem status, rounding.
+* **HUD UI**: window flags, always-on-top off, click-through + badge, opacity, compact mode,
+  section visibility, geometry persistence, off-screen correction, simulation end-to-end,
+  duo-only party section, critical toast + alarm, quiet mode, stop clears display, hide/menu,
+  render cost budget, Dashboard controls.
+
 ## Phase 1 coverage (61 tests)
 * **Database**: fresh migration, seeding, idempotent reopen, persistence across restart, refusal
   of newer schemas, corrupt-file recovery, rollback of a failing migration, FK cascades, CHECK
@@ -33,5 +47,7 @@ needed. On minimal Linux images Qt needs `libegl1 libgl1 libxkbcommon0 libfontco
 
 ## Not yet verified
 Nothing has been run on Windows yet (development so far is in a Linux container). Windows tray,
-DPI awareness and the PyInstaller build are verified in Phase 7. Recognition tests with
+DPI awareness, real HUD transparency/click-through, audio output and the PyInstaller build are
+verified in Phase 7. Headless Linux reports "does not support setting window opacity" and audio
+device warnings — expected, not failures. Recognition tests with
 synthetic screenshots arrive in Phase 3.

@@ -25,9 +25,9 @@ NAV_ITEMS = [
 ]
 
 
-def build_pages(ctx: AppContext) -> dict[str, Page]:
+def build_pages(ctx: AppContext, services=None) -> dict[str, Page]:
     return {
-        "Dashboard": DashboardPage(ctx),
+        "Dashboard": DashboardPage(ctx, services),
         "Visual Recognition": PlaceholderPage(
             "Visual Recognition", "Calibrate screen regions and watch recognition live.", 3,
             ["Detect the Tibia window (read-only window lookup)",
@@ -63,9 +63,10 @@ def build_pages(ctx: AppContext) -> dict[str, Page]:
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, ctx: AppContext) -> None:
+    def __init__(self, ctx: AppContext, services=None) -> None:
         super().__init__()
         self.ctx = ctx
+        self.services = services
         self._really_quit = False
         self.setWindowTitle(APP_NAME)
         self.setWindowIcon(app_icon())
@@ -93,7 +94,7 @@ class MainWindow(QMainWindow):
         sb.addSpacing(18)
 
         self.stack = QStackedWidget()
-        self.pages = build_pages(ctx)
+        self.pages = build_pages(ctx, services)
         self.nav_group = QButtonGroup(self)
         self.nav_buttons: dict[str, QPushButton] = {}
         for i, name in enumerate(NAV_ITEMS):
@@ -122,6 +123,10 @@ class MainWindow(QMainWindow):
         ctx.bus.subscribe(Topic.PROFILE_CHANGED, lambda _m: self._update_status())
         ctx.bus.subscribe(Topic.CONFIG_CHANGED, lambda _s: self._update_status())
         ctx.bus.subscribe(Topic.APP_ERROR, self._show_error)
+        ctx.bus.subscribe(Topic.RECOGNITION_STATUS,
+                          lambda st: self.status_recog.setText(f"Recognition: {st.message or st.state.value}"))
+        if services is not None:
+            services.hud.open_main_window.connect(self.bring_to_front)
         self._update_status()
         self.show_page("Dashboard")
 
@@ -130,6 +135,11 @@ class MainWindow(QMainWindow):
         self.nav_buttons[name].setChecked(True)
         self.stack.setCurrentWidget(page)
         page.on_shown()
+
+    def bring_to_front(self) -> None:
+        self.showNormal()
+        self.raise_()
+        self.activateWindow()
 
     def current_page_name(self) -> str:
         return next(n for n, p in self.pages.items() if p is self.stack.currentWidget())

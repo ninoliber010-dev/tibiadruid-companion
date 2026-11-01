@@ -95,3 +95,18 @@ class Recommendation:
     reason: str = ""
     category: str = "healing"
     timestamp: float = field(default_factory=time.time)
+
+
+@dataclass(frozen=True)
+class Notification:
+    """A toast/sound event produced by the NotificationManager."""
+
+    key: str
+    priority: Priority
+    title: str
+    message: str
+    category: str
+    sound: str = "none"        # none | soft | chime | alarm
+    volume: int = 70           # 0-100
+    duration_ms: int = 4000
+    timestamp: float = field(default_factory=time.time)

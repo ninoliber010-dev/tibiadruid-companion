@@ -7,7 +7,6 @@ import sys
 from typing import Callable
 
 from PySide6.QtCore import QObject, Qt, Signal
-from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon
 
 from tdc import APP_ID, APP_NAME, __version__
@@ -54,25 +53,40 @@ def _enable_dpi_awareness() -> None:
         pass
 
 
-def _setup_tray(app: QApplication, window) -> QSystemTrayIcon | None:
+def _setup_tray(app: QApplication, window, services) -> QSystemTrayIcon | None:
     if not QSystemTrayIcon.isSystemTrayAvailable():
         return None
+    from tdc.core.models import Priority
     from tdc.ui.icons import app_icon
 
     tray = QSystemTrayIcon(app_icon(), app)
     tray.setToolTip(APP_NAME)
     menu = QMenu()
-    show = QAction("Open main window", menu)
-    show.triggered.connect(lambda: (window.showNormal(), window.raise_(), window.activateWindow()))
-    quit_ = QAction("Quit", menu)
-    quit_.triggered.connect(window.request_quit)
-    menu.addAction(show)
-    menu.addSeparator()
-    menu.addAction(quit_)
+
+    def rebuild() -> None:
+        # Rebuilt each time so check marks always match the saved settings.
+        menu.clear()
+        menu.addAction("Open main window").triggered.connect(window.bring_to_front)
+        menu.addSeparator()
+        services.hud.populate_menu(menu)
+        if services.simulation.running:
+            menu.addAction("Stop simulation").triggered.connect(services.simulation.stop)
+        menu.addSeparator()
+        menu.addAction("Quit").triggered.connect(window.request_quit)
+
+    menu.aboutToShow.connect(rebuild)
+    rebuild()
     tray.setContextMenu(menu)
     tray.activated.connect(
-        lambda reason: show.trigger() if reason == QSystemTrayIcon.Trigger else None
+        lambda reason: window.bring_to_front() if reason == QSystemTrayIcon.Trigger else None
     )
+
+    def on_notification(n) -> None:
+        # Critical alerts still reach the player when the HUD is hidden.
+        if n.priority == Priority.CRITICAL and not services.hud.visible:
+            tray.showMessage(APP_NAME, n.message, QSystemTrayIcon.Critical, n.duration_ms)
+
+    services.ctx.bus.subscribe(Topic.NOTIFICATION, on_notification)
     tray.show()
     tray._menu = menu  # keep a reference
     return tray
@@ -113,13 +127,19 @@ def main(argv: list[str] | None = None) -> int:
     bus.subscribe(Topic.CONFIG_CHANGED,
                   lambda s: set_level(ctx.config.get(GeneralSettings).log_level) if s == "general" else None)
 
-    window = MainWindow(ctx)
-    tray = _setup_tray(app, window)
+    from tdc.ui.services import Services
+
+    services = Services(ctx)
+    window = MainWindow(ctx, services)
+    tray = _setup_tray(app, window, services)
     window.tray_available = tray is not None
     window.show()
+    if ctx.config.get(GeneralSettings).show_hud_on_launch:
+        services.hud.show()
 
     def on_quit() -> None:
         log.info("Shutting down")
+        services.shutdown()
         ctx.shutdown()
 
     app.aboutToQuit.connect(on_quit)
@@ -130,6 +150,13 @@ def main(argv: list[str] | None = None) -> int:
             for name in window.pages:
                 window.show_page(name)
                 app.processEvents()
+            services.hud.show()
+            services.simulation.start("danger")
+            for _ in range(5):
+                services.simulation._tick()
+                app.processEvents()
+            services.hud.render(force=True)
+            services.simulation.stop()
             log.info("Smoke test passed: %d pages shown", len(window.pages))
             print("SMOKE TEST OK")
             window.request_quit()

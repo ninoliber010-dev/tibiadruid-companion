@@ -1,6 +1,6 @@
 # Tibia Druid Companion — Architecture
 
-Status: **Phase 1 (Foundation) implemented.** Later sections describe the target design;
+Status: **Phases 1 (Foundation) and 2 (Floating HUD) implemented.** Later sections describe the target design;
 anything not yet built is marked with its phase.
 
 ---
@@ -93,19 +93,20 @@ it behaves like a screen-recording + notes tool.
 | # | Module | Package | Responsibility | Phase |
 |---|---|---|---|---|
 | 1 | Desktop app | `tdc/ui/` (`main_window.py`, `pages/`) | Navigation, all configuration pages | 1 (shell), filled per phase |
-| 2 | Floating HUD | `tdc/ui/hud/` | Overlay window, view-model | 2 |
+| 2 | Floating HUD | `tdc/ui/hud/` (`viewmodel.py` Qt-free, `window.py`, `widgets.py`, `controller.py`, `sound.py`) | Overlay window, view-model | **2** |
 | 3 | Recognition engine | `tdc/recognition/` | Window lookup, capture, bar/battle-list analysis, OCR, confidence | 3 |
 | 4 | Combat assistant | `tdc/assistants/combat.py` | Creature list, priorities, health deltas, info recommendations | 4 |
-| 5 | Healing assistant | `tdc/assistants/healing.py` | Threshold → recommendation engine (self & partner) | 4 |
+| 5 | Healing assistant | `tdc/assistants/healing.py` | Threshold → recommendation engine (self & partner) | core **2**, editor 4 |
 | 6 | Party assistant | `tdc/assistants/party.py` | Solo/duo profile, partner monitoring | 4 |
 | 7 | Route manager | `tdc/routes/` | Routes, folders, waypoints, import/export | 5 |
 | 8 | Analytics | `tdc/analytics/` | Sessions, XP/h, supplies, profit, reliability tags | 6 |
-| 9 | Notifications | `tdc/notifications/` | Priority, cooldown, dedupe, quiet mode, sounds | 2 |
+| 9 | Notifications | `tdc/notifications/` | Priority, cooldown, dedupe, quiet mode, sounds | **2** |
 | 10 | Configuration | `tdc/config/` | Typed, validated, persisted settings | **1** |
 | 11 | Database | `tdc/storage/` | SQLite, migrations, backup, recovery | **1** |
 | 12 | Logging/diagnostics | `tdc/core/logging_setup.py`, `ui/pages/diagnostics.py` | Rotating log file, in-memory log buffer, health checks | **1** |
 | — | Event bus & models | `tdc/core/` | Topics, immutable data models | **1** |
-| — | Simulation | `tdc/simulation/` | Simulated readings for HUD/assistant development | 2 |
+| — | Simulation | `tdc/simulation/` (`scenarios.py` Qt-free, `runner.py` QTimer) | Simulated readings for HUD/assistant development | **2** |
+| — | UI services | `tdc/ui/services.py` | Builds notification manager, healing assistant, simulation and HUD controller | **2** |
 
 Rules that keep modules independent:
 
@@ -140,6 +141,10 @@ Rules that keep modules independent:
 7. The **HUD view-model** keeps the latest state of every section and the HUD repaints at
    most ~10 times per second. Each value carries its reliability so the HUD can show
    `—` / "not calibrated" instead of a number.
+
+Until the validator exists (Phase 3) the simulation publishes straight to
+`Topic.READING_VALIDATED`; the healing engine and the HUD still apply the confidence threshold
+themselves, so low-confidence simulated data is already shown as unavailable.
 
 Because every stage is an event, the **simulation source** (Phase 2) publishes the same
 `FrameReading` objects, so the HUD and assistants are developed and tested before real

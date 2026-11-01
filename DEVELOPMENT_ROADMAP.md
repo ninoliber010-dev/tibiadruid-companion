@@ -18,15 +18,24 @@ its features are implemented **and** tested.
 - [x] Compliance test (no input/memory/injection APIs, no network code)
 - [x] 61 automated tests
 
-## Phase 2 — Floating HUD
-- [ ] Frameless always-on-top HUD window; drag to move, resize grip, persisted geometry
-- [ ] Opacity slider, compact/expanded modes, per-section visibility
-- [ ] Click-through mode with a visible badge; disable via tray menu, main window and HUD hotkey
-- [ ] Sections: player, party, combat, recommendations, session — showing "—"/reason when unavailable
-- [ ] Notification manager: priorities, cooldown, de-duplication, quiet mode, categories, toasts, sounds
-- [ ] Simulation source publishing `FrameReading`s (scripted hunt scenarios)
-- Acceptance: HUD runs ≥ 10 fps on simulated data with < 3 % CPU; settings persist; tests for
-  notification cooldown/dedupe/quiet mode and HUD view-model.
+## Phase 2 — Floating HUD ✅
+- [x] Frameless always-on-top tool window (no taskbar entry); drag to move, resize grip,
+      debounced persisted geometry, off-screen position correction
+- [x] Opacity, compact/expanded (compact auto-sizes to content), per-section visibility, text size
+- [x] Click-through mode with a visible badge; turn off from the tray menu or the Dashboard
+- [x] Sections: player, party (duo only), recommendations, creatures with health trend, session —
+      unavailable / low-confidence / stale values shown as such, never as numbers
+- [x] Status colours derived from the user's own healing thresholds
+- [x] Notification manager: priorities, announce-once, escalation, critical reminders, flicker
+      suppression (cooldown), quiet mode, categories, per-priority sounds; in-HUD toasts, critical
+      border flash, tray balloon for critical alerts when the HUD is hidden
+- [x] Sounds synthesised in code (soft/chime/alarm) with volume
+- [x] Simulation: 4 deterministic scenarios (steady, dangerous pull, duo partner, recognition dropout),
+      start/stop from the Dashboard
+- [x] Healing-engine core (brought forward from Phase 4 so the HUD shows real recommendation logic)
+- [x] Tray menu: open window, show/hide HUD, click-through, compact, opacity, quiet mode, stop simulation
+- Measured: render ≈ 1–2 ms per frame; ~2 % of one core and ~90 MB RSS while simulating (Linux, offscreen).
+- Not yet verified on Windows: real transparency/click-through behaviour and audio output.
 
 ## Phase 3 — Visual Recognition
 - [ ] Tibia window lookup (read-only Win32), minimized/missing detection with back-off
@@ -41,7 +50,8 @@ its features are implemented **and** tested.
   low-confidence cases return *unavailable*.
 
 ## Phase 4 — Recommendation Systems
-- [ ] Healing engine (self + partner rules, priorities, solo/duo profiles)
+- [x] Healing engine core (self + partner rules, priorities, solo/duo) — done in Phase 2
+- [ ] Healing rule editor UI (add/edit/reorder/disable rules per profile)
 - [ ] Potion recommendations and low-mana warnings
 - [ ] Combat assistant: creature list, priorities, health trends, informational hints
 - [ ] Duo monitoring with separate thresholds

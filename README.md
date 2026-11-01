@@ -14,15 +14,17 @@ party, creature and session information in a floating HUD with healing and potio
 
 | Phase | Scope | State |
 |---|---|---|
-| 1 Foundation | Architecture, app shell, SQLite + migrations, config, logging, diagnostics | **Done** — 61 automated tests |
-| 2 Floating HUD | Overlay, transparency, compact/expanded, tray, notifications, simulated data | Planned |
+| 1 Foundation | Architecture, app shell, SQLite + migrations, config, logging, diagnostics | **Done** |
+| 2 Floating HUD | Overlay, transparency, compact/expanded, tray, notifications, simulated data, healing-engine core | **Done** — 125 automated tests in total |
 | 3 Visual recognition | Capture, calibration, health/mana bars, battle list, OCR, confidence | Planned |
 | 4 Recommendations | Healing, potions, combat info, duo monitoring | Planned |
 | 5 Route manager | Routes, folders, waypoints, import/export, visualization | Planned |
 | 6 Analytics | Sessions, XP/h, supplies, profit, charts, Hunt Analyser import | Planned |
 | 7 Finalization | Packaging, performance, Windows verification | Planned |
 
-Pages for modules that are not built yet say so explicitly; nothing is faked.
+Pages for modules that are not built yet say so explicitly; nothing is faked. Until screen
+recognition exists (Phase 3) the HUD can be driven by **simulated** hunts from the Dashboard;
+the HUD labels that data “Simulation”.
 
 ## Quick start (development)
 

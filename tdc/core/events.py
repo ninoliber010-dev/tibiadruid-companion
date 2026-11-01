@@ -30,6 +30,7 @@ class Topic(str, Enum):
     PROFILE_CHANGED = "profile.changed"            # HuntMode
     SESSION_UPDATED = "session.updated"            # session snapshot
     ROUTE_CHANGED = "route.changed"                # route id
+    RULES_CHANGED = "healing.rules_changed"        # profile id
     APP_ERROR = "app.error"                        # str
 
 
