@@ -31,6 +31,7 @@ class Topic(str, Enum):
     SESSION_UPDATED = "session.updated"            # session snapshot
     ROUTE_CHANGED = "route.changed"                # route id
     RULES_CHANGED = "healing.rules_changed"        # profile id
+    REGIONS_CHANGED = "recognition.regions_changed"  # region kind or None
     APP_ERROR = "app.error"                        # str
 
 
@@ -46,6 +47,10 @@ class EventBus:
 
     def set_dispatcher(self, dispatcher: Dispatcher) -> None:
         self._dispatcher = dispatcher
+
+    @property
+    def dispatcher(self) -> Dispatcher:
+        return self._dispatcher
 
     def subscribe(self, topic: Topic | str, handler: Handler) -> Callable[[], None]:
         """Register ``handler``; returns a function that unsubscribes it."""

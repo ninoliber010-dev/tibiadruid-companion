@@ -1,6 +1,6 @@
 # Tibia Druid Companion — Architecture
 
-Status: **Phases 1 (Foundation) and 2 (Floating HUD) implemented.** Later sections describe the target design;
+Status: **Phases 1–3 implemented** (foundation, floating HUD, visual recognition). Later sections describe the target design;
 anything not yet built is marked with its phase.
 
 ---
@@ -94,7 +94,7 @@ it behaves like a screen-recording + notes tool.
 |---|---|---|---|---|
 | 1 | Desktop app | `tdc/ui/` (`main_window.py`, `pages/`) | Navigation, all configuration pages | 1 (shell), filled per phase |
 | 2 | Floating HUD | `tdc/ui/hud/` (`viewmodel.py` Qt-free, `window.py`, `widgets.py`, `controller.py`, `sound.py`) | Overlay window, view-model | **2** |
-| 3 | Recognition engine | `tdc/recognition/` | Window lookup, capture, bar/battle-list analysis, OCR, confidence | 3 |
+| 3 | Recognition engine | `tdc/recognition/` (`window.py`, `capture.py`, `geometry.py`, `analyzers/`, `ocr/`, `creatures.py`, `engine.py` Qt-free; `service.py` worker thread; `validator.py`) | Window lookup, capture, bar/battle-list analysis, OCR, confidence | **3** |
 | 4 | Combat assistant | `tdc/assistants/combat.py` | Creature list, priorities, health deltas, info recommendations | 4 |
 | 5 | Healing assistant | `tdc/assistants/healing.py` | Threshold → recommendation engine (self & partner) | core **2**, editor 4 |
 | 6 | Party assistant | `tdc/assistants/party.py` | Solo/duo profile, partner monitoring | 4 |
@@ -142,15 +142,21 @@ Rules that keep modules independent:
    most ~10 times per second. Each value carries its reliability so the HUD can show
    `—` / "not calibrated" instead of a number.
 
-Until the validator exists (Phase 3) the simulation publishes straight to
-`Topic.READING_VALIDATED`; the healing engine and the HUD still apply the confidence threshold
-themselves, so low-confidence simulated data is already shown as unavailable.
-
 Because every stage is an event, the **simulation source** (Phase 2) publishes the same
 `FrameReading` objects, so the HUD and assistants are developed and tested before real
 recognition exists, and recordings of real frames can be replayed in tests.
 
-## 6. Recognition approach (Phase 3 design)
+## 6. Recognition approach (implemented in Phase 3)
+
+Threading: `RecognitionWorker` is a plain Python thread running `RecognitionEngine.cycle()`.
+It only publishes on the event bus. `Services` guarantees the bus uses `QtDispatcher`, so every
+subscriber (validator, assistants, HUD, pages) runs on the GUI thread — widgets are never
+touched from the worker. On shutdown, queued deliveries are drained and then dropped.
+
+Safety bias in the validator: falling values pass immediately; a rise of more than 30 points
+must be seen twice; below-threshold confidence becomes *unavailable*. Change detection uses a
+CRC of each captured region, so a static screen costs almost nothing.
+
 
 * **Coordinates**: regions are stored in physical pixels *relative to the Tibia client area*
   together with the client size at calibration time. If the window moves, regions follow; if
@@ -197,7 +203,7 @@ tibia-druid-companion/
 │   ├── core/                  # events.py, models.py, paths.py, logging_setup.py, errors.py
 │   ├── config/                # settings.py (typed sections), manager.py
 │   ├── storage/               # database.py, migrations.py, repositories.py, backup.py
-│   ├── recognition/           # capture.py, window.py, analyzers/, ocr/, engine.py, validator.py  (Phase 3)
+│   ├── recognition/           # window, capture, geometry, analyzers/, ocr/, engine, service, validator
 │   ├── assistants/            # healing.py, combat.py, party.py                                  (Phase 4)
 │   ├── routes/                # service.py, io.py                                                (Phase 5)
 │   ├── analytics/             # sessions.py, calculations.py, hunt_analyser_import.py            (Phase 6)

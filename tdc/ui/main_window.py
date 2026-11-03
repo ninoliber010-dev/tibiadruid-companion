@@ -17,6 +17,7 @@ from tdc.ui.icons import app_icon
 from tdc.ui.pages.configuration import ConfigurationPage
 from tdc.ui.pages.dashboard import DashboardPage
 from tdc.ui.pages.diagnostics import DiagnosticsPage
+from tdc.ui.pages.recognition import RecognitionPage
 from tdc.ui.widgets import Page, PlaceholderPage
 
 NAV_ITEMS = [
@@ -28,12 +29,7 @@ NAV_ITEMS = [
 def build_pages(ctx: AppContext, services=None) -> dict[str, Page]:
     return {
         "Dashboard": DashboardPage(ctx, services),
-        "Visual Recognition": PlaceholderPage(
-            "Visual Recognition", "Calibrate screen regions and watch recognition live.", 3,
-            ["Detect the Tibia window (read-only window lookup)",
-             "Select health, mana, battle-list, creature and party regions on a screenshot",
-             "Live preview with confidence scores",
-             "Recognition frequency and confidence threshold (already configurable under Configuration)"]),
+        "Visual Recognition": RecognitionPage(ctx, services),
         "Combat Assistant": PlaceholderPage(
             "Combat Assistant", "Recognized creatures and informational combat hints.", 4,
             ["Creature list with names, health and health trend",

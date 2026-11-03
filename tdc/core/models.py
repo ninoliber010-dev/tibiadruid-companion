@@ -62,6 +62,7 @@ class CreatureReading:
     health: Measurement
     name_confidence: float = 0.0
     slot: int = 0
+    targeted: bool = False   # red frame in the battle list: the creature you are attacking
 
 
 @dataclass(frozen=True)

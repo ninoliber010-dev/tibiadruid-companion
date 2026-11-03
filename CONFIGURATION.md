@@ -19,21 +19,26 @@ and a warning is written to the log.
 ## Floating HUD
 Width 220–900 px, height 120–1400 px, opacity 0.30–1.00, layout compact/expanded, always on top,
 click-through, section visibility (player, party, combat, recommendations, session), text size
-0.8–1.6×. Position is saved automatically when you move the HUD.
+0.8–1.6×, and *Hide HUD from screen capture* (Windows 10 2004+, default on: prevents the HUD itself
+from being read as game pixels; it also hides the HUD from recordings/streams). Position is saved automatically when you move the HUD.
 
-## Visual Recognition (used from Phase 3)
+## Visual Recognition
 | Setting | Default | Range | Meaning |
 |---|---|---|---|
-| Tibia window title contains | Tibia | text | used to find the client window |
+| Capture mode | window | window / screen | *window*: regions are relative to the Tibia window; *screen*: fixed positions on a monitor |
+| Monitor (screen mode) | 1 | 1–8 | |
+| Tibia window title starts with | Tibia | text | matches “Tibia” and “Tibia - Name”; this app's own windows are ignored |
 | Recognition interval | 250 ms | 100–2000 | lower = faster, more CPU |
 | Minimum confidence | 0.80 | 0.50–0.99 | readings below are shown as unavailable |
 | Smoothing frames | 3 | 1–10 | median filter length |
 | Interval when Tibia is not visible | 2000 ms | 500–10000, ≥ interval | back-off to save CPU |
 | Name OCR backend | template | template / tesseract / off | |
 | Tesseract executable | empty | path | only for the tesseract backend |
+| Warn when health is unreadable for | 4 s | 1–60 | elevated alert during live recognition |
 
 Screen regions (health, mana, creatures, battle list, party) are stored in the
-`recognition_regions` table with the client size at calibration time.
+`recognition_regions` table with the client size at calibration time. Learned bar colours/extents
+are in `recognition_calibration`, taught letter shapes in `ocr_glyphs` (schema v3).
 
 ## Notifications
 Enabled, quiet mode, critical-ignores-quiet, sounds on/off, volume 0–100 %, toast duration

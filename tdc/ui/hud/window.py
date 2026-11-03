@@ -6,6 +6,8 @@ an ordinary window that happens to sit above other windows.
 
 from __future__ import annotations
 
+import html
+
 from PySide6.QtCore import QPoint, QRect, QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QPen
 from PySide6.QtWidgets import (
@@ -129,6 +131,7 @@ class HudWindow(QWidget):
         root.addWidget(self.click_badge)
 
         self.toast = QLabel("")
+        self.toast.setTextFormat(Qt.RichText)
         self.toast.setWordWrap(True)
         self.toast.setVisible(False)
         root.addWidget(self.toast)
@@ -210,8 +213,14 @@ class HudWindow(QWidget):
         self._flash_timer.setInterval(180)
         self._flash_timer.timeout.connect(self._flash_step)
         self.last_state: HudState | None = None
+        self._force_plain_text()
 
     # ------------------------------------------------------------------ settings
+    def _force_plain_text(self) -> None:
+        for lbl in self.findChildren(QLabel):
+            if lbl is not self.toast:
+                lbl.setTextFormat(Qt.PlainText)
+
     def apply_settings(self, s: HudSettings) -> None:
         self._applying = True
         try:
@@ -229,6 +238,8 @@ class HudWindow(QWidget):
                 if was_visible:
                     self.show()
             self.setWindowOpacity(s.opacity)
+            if self.isVisible():
+                self.apply_capture_exclusion()
             self.click_badge.setVisible(s.click_through)
             self.grip.setVisible(not s.click_through)
             self._apply_scale(s.font_scale)
@@ -329,7 +340,7 @@ class HudWindow(QWidget):
         for i, w in enumerate(self.creature_rows):
             if i < len(st.creatures):
                 c = st.creatures[i]
-                w.set_row(c.name, c.health, c.health_text, c.trend)
+                w.set_row(c.name, c.health, c.health_text, c.trend, c.targeted)
                 w.setVisible(True)
             else:
                 w.setVisible(False)
@@ -354,7 +365,7 @@ class HudWindow(QWidget):
 
     def show_notification(self, n: Notification) -> None:
         col = C.for_priority(int(n.priority))
-        self.toast.setText(f"<b>{n.title}:</b> {n.message}")
+        self.toast.setText(f"<b>{html.escape(n.title)}:</b> {html.escape(n.message)}")
         self.toast.setStyleSheet(
             f"background: {col}; color: #111; border-radius: 6px; padding: 5px 8px; font-weight: 500;")
         self.toast.setVisible(True)
@@ -371,6 +382,27 @@ class HudWindow(QWidget):
             self._flash_timer.stop()
             self._border_color = QColor(C.BORDER_HI)
         self.update()
+
+    # ------------------------------------------------------------------ capture exclusion
+    def showEvent(self, e) -> None:  # noqa: N802
+        super().showEvent(e)
+        self.apply_capture_exclusion()
+
+    def apply_capture_exclusion(self) -> bool:
+        """Windows 10 2004+: keep this window out of screen captures (our own included), so the
+        HUD can never be mistaken for game pixels when it overlaps a calibrated region."""
+        import sys
+
+        if sys.platform != "win32":
+            return False
+        try:
+            import ctypes
+
+            WDA_NONE, WDA_EXCLUDEFROMCAPTURE = 0x0, 0x11
+            flag = WDA_EXCLUDEFROMCAPTURE if self.settings.exclude_from_capture else WDA_NONE
+            return bool(ctypes.windll.user32.SetWindowDisplayAffinity(int(self.winId()), flag))
+        except Exception:  # noqa: BLE001 - older Windows: overlap is then reported by low confidence
+            return False
 
     # ------------------------------------------------------------------ painting
     def paintEvent(self, _event) -> None:  # noqa: N802

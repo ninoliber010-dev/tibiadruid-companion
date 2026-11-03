@@ -39,6 +39,7 @@ class CreatureRow:
     health_text: str
     trend: str = ""   # "↓", "↑" or ""
     priority: int = 0
+    targeted: bool = False
 
 
 @dataclass
@@ -193,7 +194,8 @@ class HudViewModel:
                 hp = c.health.value if c.health.confidence >= self._min_conf() else None
                 name = c.name if c.name and c.name_confidence >= self._min_conf() else "Unrecognized"
                 creatures.append(CreatureRow(name, hp, pct(hp) if hp is not None else "—",
-                                             self._trends.get((c.slot, c.name or ""), "")))
+                                             self._trends.get((c.slot, c.name or ""), ""),
+                                             targeted=c.targeted))
             summary = str(len(creatures))
 
         recs = [] if stale else [RecRow(x.priority, x.text, x.reason)

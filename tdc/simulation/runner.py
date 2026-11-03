@@ -57,6 +57,5 @@ class SimulationRunner(QObject):
         if self.sim is None:
             return
         reading = self.sim.step(self.interval_ms / 1000.0, timestamp=time.time())
-        # Phase 3 inserts the ReadingValidator; until then simulated readings are already "clean"
-        # and consumers still apply their own confidence checks.
-        self._bus.publish(Topic.READING_VALIDATED, reading)
+        # Same path as live recognition: raw frame -> ReadingValidator -> assistants/HUD.
+        self._bus.publish(Topic.FRAME_READING, reading)

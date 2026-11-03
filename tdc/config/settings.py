@@ -147,6 +147,8 @@ class HudSettings(SettingsSection):
     show_recommendations: bool = setting(True, "Show recommendations")
     show_session: bool = setting(True, "Show session")
     font_scale: float = setting(1.0, "Text size", min=0.8, max=1.6, step=0.05)
+    exclude_from_capture: bool = setting(True, "Hide HUD from screen capture",
+                                         "Windows 10 2004+: stops the HUD itself being read as game pixels when it overlaps a region. Also hides it from recordings.")
 
 
 @dataclass
@@ -154,13 +156,18 @@ class RecognitionSettings(SettingsSection):
     SECTION: ClassVar[str] = "recognition"
     TITLE: ClassVar[str] = "Visual Recognition"
 
-    window_title: str = setting("Tibia", "Tibia window title contains", max_len=80)
+    capture_mode: str = setting("window", "Capture mode",
+                                "window: regions follow the Tibia window. screen: regions are fixed screen positions",
+                                choices=("window", "screen"))
+    screen_index: int = setting(1, "Monitor (screen mode)", min=1, max=8)
+    window_title: str = setting("Tibia", "Tibia window title starts with", max_len=80)
     interval_ms: int = setting(250, "Recognition interval", "Lower is faster but uses more CPU", min=100, max=2000, step=50, suffix=" ms")
     min_confidence: float = setting(0.80, "Minimum confidence", "Readings below this are treated as unavailable", min=0.5, max=0.99, step=0.01)
     smoothing_frames: int = setting(3, "Smoothing frames", "Median over the last N readings", min=1, max=10)
     idle_interval_ms: int = setting(2000, "Interval when Tibia is not visible", min=500, max=10000, step=100, suffix=" ms")
     ocr_backend: str = setting("template", "Name OCR backend", choices=("template", "tesseract", "off"))
     tesseract_path: str = setting("", "Tesseract executable (optional)", max_len=260)
+    low_confidence_alert_s: float = setting(4.0, "Warn when health is unreadable for", min=1.0, max=60.0, step=0.5, suffix=" s")
 
     def _extra_validation(self) -> dict[str, str]:
         if self.idle_interval_ms < self.interval_ms:

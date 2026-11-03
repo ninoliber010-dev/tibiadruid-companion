@@ -203,9 +203,29 @@ def _v2_seed_profiles(conn: sqlite3.Connection) -> None:
     )
 
 
+def _v3_recognition(conn: sqlite3.Connection) -> None:
+    run_script(
+        conn,
+        """
+        CREATE TABLE recognition_calibration (
+            kind        TEXT PRIMARY KEY,
+            data        TEXT NOT NULL,
+            updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE ocr_glyphs (
+            glyph_key   TEXT PRIMARY KEY,
+            text        TEXT NOT NULL,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        """,
+    )
+
+
 MIGRATIONS: list[Migration] = [
     Migration(1, "initial schema", _v1_schema),
     Migration(2, "seed default solo/duo profiles", _v2_seed_profiles),
+    Migration(3, "bar calibration and OCR glyph library", _v3_recognition),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1].version

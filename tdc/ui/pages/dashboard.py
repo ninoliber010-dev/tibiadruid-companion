@@ -160,7 +160,7 @@ class DashboardPage(Page):
         else:
             if self.scenario_box.currentData() == "duo" and self.ctx.mode != HuntMode.DUO:
                 self.ctx.set_mode(HuntMode.DUO)
-            sim.start(self.scenario_box.currentData())
+            self.services.start_simulation(self.scenario_box.currentData())
             if not self.services.hud.visible:
                 self.services.hud.show()
 
@@ -178,13 +178,18 @@ class DashboardPage(Page):
 
         calibrated = self.ctx.regions.all()
         needed = [k for k in ("health", "mana") if k not in calibrated]
-        if self.recognition_state == RecognitionState.SIMULATED:
+        if self.recognition_state == RecognitionState.RUNNING:
+            self.recognition_card.set("Live", "Reading the Tibia window.", C.GREEN)
+        elif self.recognition_state in (RecognitionState.WINDOW_NOT_FOUND, RecognitionState.MINIMIZED,
+                                        RecognitionState.NOT_CALIBRATED, RecognitionState.ERROR):
+            self.recognition_card.set("Problem", "See Visual Recognition for details.", C.RED)
+        elif self.recognition_state == RecognitionState.SIMULATED:
             self.recognition_card.set("Simulation", "Readings are simulated test data, not from Tibia.", C.AMBER)
         else:
             self.recognition_card.set(
                 "Not running",
                 f"{len(calibrated)}/{len(REGION_KINDS)} regions calibrated. "
-                "Screen recognition arrives in Phase 3.",
+                "Start it from Visual Recognition.",
                 C.TEXT_MUTED if needed else C.AMBER,
             )
 

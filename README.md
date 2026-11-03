@@ -15,16 +15,20 @@ party, creature and session information in a floating HUD with healing and potio
 | Phase | Scope | State |
 |---|---|---|
 | 1 Foundation | Architecture, app shell, SQLite + migrations, config, logging, diagnostics | **Done** |
-| 2 Floating HUD | Overlay, transparency, compact/expanded, tray, notifications, simulated data, healing-engine core | **Done** — 125 automated tests in total |
-| 3 Visual recognition | Capture, calibration, health/mana bars, battle list, OCR, confidence | Planned |
+| 2 Floating HUD | Overlay, transparency, compact/expanded, tray, notifications, simulated data, healing-engine core | **Done** |
+| 3 Visual recognition | Capture, calibration, health/mana bars, battle list, party list, name OCR, confidence, validator | **Done** — 210 automated tests in total (not yet tried on a real Tibia client) |
 | 4 Recommendations | Healing, potions, combat info, duo monitoring | Planned |
 | 5 Route manager | Routes, folders, waypoints, import/export, visualization | Planned |
 | 6 Analytics | Sessions, XP/h, supplies, profit, charts, Hunt Analyser import | Planned |
 | 7 Finalization | Packaging, performance, Windows verification | Planned |
 
-Pages for modules that are not built yet say so explicitly; nothing is faked. Until screen
-recognition exists (Phase 3) the HUD can be driven by **simulated** hunts from the Dashboard;
-the HUD labels that data “Simulation”.
+Pages for modules that are not built yet say so explicitly; nothing is faked. Besides live
+recognition, the HUD can be driven by **simulated** hunts from the Dashboard (labelled
+“Simulation”), and calibration can be tried on a synthetic **demo screenshot**.
+
+> Recognition has been developed and tested against synthetic, Tibia-like screenshots. It has not
+> yet been run against the real client, whose colours and layout will need the calibration step
+> (and possibly analyzer tuning) — see `TESTING.md`.
 
 ## Quick start (development)
 

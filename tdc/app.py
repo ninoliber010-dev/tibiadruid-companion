@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Callable
 
-from PySide6.QtCore import QObject, Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon
 
 from tdc import APP_ID, APP_NAME, __version__
@@ -16,29 +15,9 @@ from tdc.core.events import Topic
 from tdc.core.logging_setup import configure_logging, set_level
 from tdc.core.paths import AppPaths
 from tdc.core.errors import DatabaseError
+from tdc.ui.dispatch import QtDispatcher  # noqa: F401  (re-exported for callers/tests)
 
 log = logging.getLogger(__name__)
-
-
-class QtDispatcher(QObject):
-    """Delivers event-bus callbacks on the GUI thread.
-
-    Emitting a signal from a worker thread to a QObject living in the GUI thread is
-    queued by Qt automatically; emitting from the GUI thread calls directly.
-    """
-
-    _call = Signal(object)
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._call.connect(self._run, Qt.AutoConnection)
-
-    def __call__(self, fn: Callable[[], None]) -> None:
-        self._call.emit(fn)
-
-    @staticmethod
-    def _run(fn: Callable[[], None]) -> None:
-        fn()
 
 
 def _enable_dpi_awareness() -> None:

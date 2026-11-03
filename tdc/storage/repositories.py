@@ -240,3 +240,58 @@ class CreaturePriorityRepository:
 
     def delete(self, name: str) -> None:
         self.db.execute("DELETE FROM creature_priorities WHERE name = ?", (name,))
+
+
+# --------------------------------------------------------------------------- recognition
+class CalibrationRepository:
+    """Per-region analyzer calibration (e.g. learned bar colour), stored as JSON."""
+
+    def __init__(self, db: Database) -> None:
+        self.db = db
+
+    def all(self) -> dict[str, dict]:
+        out = {}
+        for r in self.db.query("SELECT kind, data FROM recognition_calibration"):
+            try:
+                out[r["kind"]] = json.loads(r["data"])
+            except json.JSONDecodeError:
+                continue
+        return out
+
+    def save(self, kind: str, data: dict) -> None:
+        if kind not in REGION_KINDS:
+            raise ValidationError(f"Unknown region kind {kind!r}")
+        self.db.execute(
+            "INSERT INTO recognition_calibration(kind, data, updated_at) VALUES (?,?, datetime('now'))"
+            " ON CONFLICT(kind) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at",
+            (kind, json.dumps(data)),
+        )
+
+    def delete(self, kind: str) -> None:
+        self.db.execute("DELETE FROM recognition_calibration WHERE kind = ?", (kind,))
+
+
+class GlyphRepository:
+    """Learned OCR glyph templates: glyph key -> character(s)."""
+
+    def __init__(self, db: Database) -> None:
+        self.db = db
+
+    def all(self) -> dict[str, str]:
+        return {r["glyph_key"]: r["text"] for r in self.db.query("SELECT glyph_key, text FROM ocr_glyphs")}
+
+    def save_many(self, templates: dict[str, str]) -> None:
+        if not templates:
+            return
+        with self.db.transaction() as conn:
+            conn.executemany(
+                "INSERT INTO ocr_glyphs(glyph_key, text) VALUES (?,?)"
+                " ON CONFLICT(glyph_key) DO UPDATE SET text=excluded.text",
+                list(templates.items()),
+            )
+
+    def clear(self) -> None:
+        self.db.execute("DELETE FROM ocr_glyphs")
+
+    def count(self) -> int:
+        return self.db.query_one("SELECT COUNT(*) FROM ocr_glyphs")[0]

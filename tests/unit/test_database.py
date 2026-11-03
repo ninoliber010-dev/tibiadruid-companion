@@ -10,7 +10,8 @@ from tdc.storage.migrations import LATEST_VERSION
 EXPECTED_TABLES = {
     "settings", "hunting_profiles", "healing_rules", "recognition_regions", "creature_priorities",
     "route_folders", "routes", "waypoints", "hunt_sessions", "session_metrics", "item_prices",
-    "session_supplies", "session_kills", "event_log", "schema_version",
+    "session_supplies", "session_kills", "event_log", "schema_version", "recognition_calibration",
+    "ocr_glyphs",
 }
 
 

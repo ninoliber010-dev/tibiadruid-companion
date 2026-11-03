@@ -102,12 +102,15 @@ class CreatureRowWidget(QWidget):
         self.health: float | None = None
         self.health_text = "—"
         self.trend = ""
+        self.targeted = False
         self.scale = 1.0
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-    def set_row(self, name: str, health: float | None, health_text: str, trend: str) -> None:
-        if (name, health, health_text, trend) != (self.name, self.health, self.health_text, self.trend):
-            self.name, self.health, self.health_text, self.trend = name, health, health_text, trend
+    def set_row(self, name: str, health: float | None, health_text: str, trend: str,
+                targeted: bool = False) -> None:
+        new = (name, health, health_text, trend, targeted)
+        if new != (self.name, self.health, self.health_text, self.trend, self.targeted):
+            self.name, self.health, self.health_text, self.trend, self.targeted = new
             self.update()
 
     def sizeHint(self) -> QSize:  # noqa: N802
@@ -125,9 +128,16 @@ class CreatureRowWidget(QWidget):
         f.setPointSizeF(9 * s)
         p.setFont(f)
         name_w = w * 0.52
+        indent = 0.0
+        if self.targeted:
+            # Small red marker: the creature you are attacking (from the battle list's red frame).
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(C.RED))
+            p.drawRoundedRect(QRectF(0, h * 0.25, 3, h * 0.5), 1.5, 1.5)
+            indent = 7.0
         p.setPen(QColor(C.TEXT if self.name != "Unrecognized" else C.TEXT_MUTED))
-        p.drawText(QRectF(0, 0, name_w, h), Qt.AlignLeft | Qt.AlignVCenter,
-                   p.fontMetrics().elidedText(self.name, Qt.ElideRight, int(name_w - 4)))
+        p.drawText(QRectF(indent, 0, name_w - indent, h), Qt.AlignLeft | Qt.AlignVCenter,
+                   p.fontMetrics().elidedText(self.name, Qt.ElideRight, int(name_w - indent - 4)))
         bar_x, bar_w, bar_h = name_w, w * 0.30, 5 * s
         y = (h - bar_h) / 2
         p.setPen(Qt.NoPen)

@@ -37,17 +37,31 @@ its features are implemented **and** tested.
 - Measured: render ≈ 1–2 ms per frame; ~2 % of one core and ~90 MB RSS while simulating (Linux, offscreen).
 - Not yet verified on Windows: real transparency/click-through behaviour and audio output.
 
-## Phase 3 — Visual Recognition
-- [ ] Tibia window lookup (read-only Win32), minimized/missing detection with back-off
-- [ ] Capture of configured regions (`mss`), change detection
-- [ ] Calibration UI: take screenshot, drag rectangles for each region, live preview
-- [ ] Health/mana bar analyzer (colour segmentation) with confidence
-- [ ] Battle list / party list analyzer (health-bar detection, per-entry health %)
-- [ ] Creature name OCR: glyph-template backend + optional Tesseract; fuzzy match to known names
-- [ ] Validator: confidence gate, median smoothing, impossible-jump rejection
-- [ ] Recognition worker thread with configurable interval
-- Acceptance: synthetic-screenshot test suite (various fills, noise, scaling, occlusion);
-  low-confidence cases return *unavailable*.
+## Phase 3 — Visual Recognition ✅ (synthetic screenshots; real-client verification pending)
+- [x] Tibia window lookup (read-only Win32: title, client rect, minimized/visible, skips own windows)
+- [x] "screen" capture mode (fixed monitor positions) as a fallback
+- [x] Capture of configured regions only (`mss`), CRC change detection skips unchanged regions
+- [x] Regions follow the window; on resize they keep their distance to the nearest window edge,
+      with a confidence penalty and a "resized since calibration" status
+- [x] Health/mana bar analyzer: colour segmentation, text-over-bar tolerance, occlusion detection,
+      step-fit/track/coverage confidence; "Learn bar" calibration (colour + exact extents) that
+      rejects non-bars and too-tight rectangles
+- [x] Battle list / party list analyzer: bordered health-bar detection, per-entry health,
+      attacked-creature (red frame) detection
+- [x] Creature names: glyph-template OCR trained in the app ("Teach"), optional Tesseract,
+      fuzzy matching (with OCR wildcards) against known creatures + your creature priorities
+- [x] Partner chosen by name (OCR) or by position in the party list
+- [x] ReadingValidator: confidence gate, median smoothing, drops pass immediately, large rises
+      need confirmation (a single bad frame can never hide an emergency)
+- [x] Worker thread with configurable interval, idle back-off when Tibia is absent/minimized,
+      error back-off, fps reporting; simulation and live recognition are mutually exclusive
+- [x] Alerts: monitoring unavailable (critical), not set up (elevated), health unreadable for N s
+- [x] Visual Recognition page: screenshot / load image / demo screenshot, draw regions, learn bars,
+      test results with previews, teach names, start/stop
+- [x] HUD hidden from screen capture on Windows 10 2004+ (so it is never read as game pixels)
+- Measured: ~1 ms analysis per cycle with every region changing (≈0.4 % of a core at 250 ms),
+  excluding Windows capture time.
+- Pending on Windows: real client colours/layout, DPI scaling, capture timing, Tesseract backend.
 
 ## Phase 4 — Recommendation Systems
 - [x] Healing engine core (self + partner rules, priorities, solo/duo) — done in Phase 2
