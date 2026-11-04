@@ -128,3 +128,46 @@ class SettingsForm(QWidget):
 
     def editor(self, name: str) -> QWidget:
         return self._editors[name]
+
+
+class SettingsCard(QWidget):
+    """A settings section with its own Save button, for embedding in module pages."""
+
+    saved = Signal()
+
+    def __init__(self, ctx, cls, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        from PySide6.QtWidgets import QHBoxLayout, QPushButton
+
+        from tdc.core.errors import ConfigValidationError
+        from tdc.core.events import Topic
+
+        self._err_cls = ConfigValidationError
+        self.ctx, self.cls = ctx, cls
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(0, 0, 0, 0)
+        self.form = SettingsForm(ctx.config.get(cls))
+        self.form.layout().setContentsMargins(0, 0, 0, 0)
+        lay.addWidget(self.form)
+        row = QHBoxLayout()
+        self.status = QLabel("")
+        self.status.setObjectName("Dim")
+        self.save_btn = QPushButton("Save")
+        self.save_btn.setObjectName("Primary")
+        row.addWidget(self.status, 1)
+        row.addWidget(self.save_btn)
+        lay.addLayout(row)
+        self.save_btn.clicked.connect(self.save)
+        ctx.bus.subscribe(Topic.CONFIG_CHANGED, lambda s: self.form.set_values(ctx.config.get(cls))
+                          if s == cls.SECTION else None)
+
+    def save(self) -> bool:
+        try:
+            self.ctx.config.save(self.form.build())
+        except self._err_cls as exc:
+            self.form.show_errors(exc.errors)
+            self.status.setText("Please fix the highlighted values.")
+            return False
+        self.status.setText("Saved.")
+        self.saved.emit()
+        return True

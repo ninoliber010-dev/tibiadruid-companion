@@ -16,8 +16,8 @@ party, creature and session information in a floating HUD with healing and potio
 |---|---|---|
 | 1 Foundation | Architecture, app shell, SQLite + migrations, config, logging, diagnostics | **Done** |
 | 2 Floating HUD | Overlay, transparency, compact/expanded, tray, notifications, simulated data, healing-engine core | **Done** |
-| 3 Visual recognition | Capture, calibration, health/mana bars, battle list, party list, name OCR, confidence, validator | **Done** — 210 automated tests in total (not yet tried on a real Tibia client) |
-| 4 Recommendations | Healing, potions, combat info, duo monitoring | Planned |
+| 3 Visual recognition | Capture, calibration, health/mana bars, battle list, party list, name OCR, confidence, validator | **Done** (not yet tried on a real Tibia client) |
+| 4 Recommendations | Healing rule editor, potions, combat assistant, creature priorities, duo partner page, alert log | **Done** — 234 automated tests in total |
 | 5 Route manager | Routes, folders, waypoints, import/export, visualization | Planned |
 | 6 Analytics | Sessions, XP/h, supplies, profit, charts, Hunt Analyser import | Planned |
 | 7 Finalization | Packaging, performance, Windows verification | Planned |

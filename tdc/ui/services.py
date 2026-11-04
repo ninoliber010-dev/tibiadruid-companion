@@ -5,11 +5,14 @@ from __future__ import annotations
 import time
 
 from tdc.app_context import AppContext
-from tdc.assistants.healing import HealingAssistant, HealingContext
-from tdc.config.settings import NotificationSettings, PartySettings, RecognitionSettings
+from tdc.assistants.combat import CombatAnalyzer, CombatAssistant
+from tdc.assistants.healing import HealingContext
+from tdc.assistants.hub import RecommendationHub
+from tdc.config.settings import CombatSettings, NotificationSettings, PartySettings, RecognitionSettings
 from tdc.core.events import Topic
 from tdc.core.models import Priority, RecognitionState, RecognitionStatus
 from tdc.notifications.manager import NotificationManager
+from tdc.notifications.recorder import EventRecorder
 from tdc.recognition.service import RecognitionService
 from tdc.recognition.validator import ReadingValidator
 from tdc.simulation.runner import SimulationRunner
@@ -37,6 +40,23 @@ class RulesCache:
         return self._rules
 
 
+class PriorityCache:
+    """Creature priorities, re-read only when they change (Topic.CONFIG_CHANGED 'creatures')."""
+
+    def __init__(self, ctx: AppContext) -> None:
+        self.ctx = ctx
+        self._data: dict[str, int] | None = None
+        ctx.bus.subscribe(Topic.CONFIG_CHANGED, lambda s: self.invalidate() if s == "creatures" else None)
+
+    def invalidate(self) -> None:
+        self._data = None
+
+    def get(self) -> dict[str, int]:
+        if self._data is None:
+            self._data = self.ctx.creatures.all()
+        return self._data
+
+
 class Services:
     def __init__(self, ctx: AppContext, recognition: RecognitionService | None = None) -> None:
         self.ctx = ctx
@@ -51,9 +71,15 @@ class Services:
         self.recognition = recognition or RecognitionService(ctx)
         self._unreadable_since: float | None = None
         self.notifications = NotificationManager(ctx.bus, lambda: ctx.config.get(NotificationSettings))
-        self.healing = HealingAssistant(ctx.bus, self._healing_context)
+        self.recorder = EventRecorder(ctx.db, ctx.bus)
+        self.priorities = PriorityCache(ctx)
+        self.combat = CombatAssistant(ctx.bus, CombatAnalyzer(
+            lambda: ctx.config.get(CombatSettings), self.priorities.get,
+            lambda: ctx.config.get(RecognitionSettings).min_confidence))
+        self.hub = RecommendationHub(ctx.bus, self._healing_context, self.combat)
+        self.healing = self.hub   # backwards-compatible name
         self.simulation = SimulationRunner(ctx.bus, ctx.config.get(RecognitionSettings).interval_ms)
-        self.hud = HudController(ctx, self.rules.get)
+        self.hud = HudController(ctx, self.rules.get, self.priorities.get)
         self._last_state: RecognitionState | None = None
         ctx.bus.subscribe(Topic.CONFIG_CHANGED, self._on_config)
         ctx.bus.subscribe(Topic.RECOGNITION_STATUS, self._on_status)
@@ -63,6 +89,7 @@ class Services:
     def start_recognition(self) -> None:
         self.simulation.stop()
         self.validator.reset()
+        self.combat.analyzer.reset()
         self.recognition.start()
 
     def stop_recognition(self) -> None:
@@ -71,6 +98,7 @@ class Services:
     def start_simulation(self, scenario: str) -> None:
         self.recognition.stop()
         self.validator.reset()
+        self.combat.analyzer.reset()
         self.simulation.start(scenario)
 
     def _watch_reliability(self, reading) -> None:
@@ -122,7 +150,8 @@ class Services:
         self.simulation.stop()
         QCoreApplication.processEvents()      # deliver what the worker already queued
         self.hud.close()
-        self.healing.close()
+        self.hub.close()
+        self.recorder.close()
         self.validator.close()
         self.notifications.close()
         dispatcher = self.ctx.bus.dispatcher

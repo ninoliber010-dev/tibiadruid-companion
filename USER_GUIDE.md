@@ -1,6 +1,6 @@
 # User Guide
 
-> Current version: Phase 3 (visual recognition). Sections marked *(planned)* describe features that are
+> Current version: Phase 4 (recommendation systems). Sections marked *(planned)* describe features that are
 > not available yet.
 
 ## Main window
@@ -10,9 +10,10 @@ The sidebar has nine pages:
   mode, run a simulation, and see the state of every module. A grey dot and "—" mean the
   information is not available; nothing is guessed.
 * **Visual Recognition** — calibrate the screen regions the app reads and start live recognition.
-* **Combat Assistant** *(Phase 4)* — recognized creatures and informational hints.
-* **Healing Assistant** *(Phase 4)* — edit healing, potion and warning rules.
-* **Party Settings** *(Phase 4)* — duo partner monitoring.
+* **Combat Assistant** — creatures now (health, trend, time to 0 %, your target), creature
+  priorities and combat alert settings.
+* **Healing Assistant** — edit healing, potion and warning rules per profile, and try them out.
+* **Party Settings** — duo partner: name/position, live health, partner thresholds.
 * **Route Manager** *(Phase 5)* — plan hunting routes and waypoints.
 * **Analytics** *(Phase 6)* — session statistics and history.
 * **Configuration** — every setting, grouped in tabs. Press **Save** to apply; **Revert**
@@ -71,6 +72,29 @@ taught letters), or their position in the party list.
 
 **Settings** (Configuration → Visual Recognition): capture mode (*window* follows Tibia; *screen*
 uses fixed positions on a monitor), interval, minimum confidence, smoothing, name OCR backend.
+
+## Healing rules
+Healing Assistant → pick **Solo** or **Duo** (the profile you edit; the *active* one is chosen on the
+Dashboard). Each rule says: *for* you or your partner, *type* (spell, potion or warning only), the
+*name* shown in the HUD, what to *watch* (health or mana), *below* which % it applies, and a
+*priority* (normal / elevated / critical).
+
+When several rules match, the HUD suggests the spell or potion with the **lowest threshold** and
+uses the **highest priority** of all matches. Example: at 30 % health, *Exura Vita (below 60 %,
+elevated)* and *Critical health (below 35 %, critical)* both match → “Cast Exura Vita” shown as
+**critical**. Untick a rule to pause it, ▲/▼ to reorder, double-click to edit, *Restore example
+rules* to start over. The **Try it** sliders show what would be recommended at any values.
+
+## Combat
+Combat Assistant lists what the battle list shows. Add creatures with a **priority** (1–10): they
+get a ★ and are listed first in the HUD, and those at or above *Announce from priority* are
+announced when they appear. **Crowd warning/critical** alert you when many creatures are on screen.
+*Trend* is how fast a creature is losing health; *Time to 0 %* is a rough estimate at that rate.
+The app never selects or attacks anything.
+
+## Alert log
+Every alert that was actually shown is stored locally (Diagnostics database counts show
+`event_log`). Phase 6 uses it for session history.
 
 ## Simulation
 Dashboard → *Simulation*: pick a scenario (steady hunt, dangerous pull, duo partner in trouble,

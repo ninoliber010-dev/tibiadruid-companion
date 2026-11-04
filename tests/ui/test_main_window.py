@@ -25,7 +25,7 @@ def test_unbuilt_modules_are_clearly_marked(qtbot, ctx):
     qtbot.addWidget(w)
     placeholders = {n for n, p in w.pages.items() if isinstance(p, PlaceholderPage)}
     assert "Dashboard" not in placeholders and "Configuration" not in placeholders
-    assert "Visual Recognition" not in placeholders and "Combat Assistant" in placeholders
+    assert placeholders == {"Route Manager", "Analytics"}
 
 
 def test_dashboard_mode_switch(qtbot, ctx):

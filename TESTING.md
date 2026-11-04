@@ -14,6 +14,18 @@ needed. On minimal Linux images Qt needs `libegl1 libgl1 libxkbcommon0 libfontco
 | `tests/ui/` | Main window navigation, settings forms, diagnostics, GUI-thread dispatch |
 | `tests/fixtures/` | Synthetic screenshots and sample datasets (from Phase 3) |
 
+## Phase 4 coverage (24 tests, 234 in total)
+* **Combat**: crowd levels, priority sorting and announcements (incl. "your target"), disabling
+  announcements, health trend and time-to-0 %, trend reset when a creature leaves, low confidence,
+  unreliable names/health hidden, case-insensitive priorities, settings validation.
+* **Hub**: healing and combat combined into one list, critical first.
+* **Alert log**: notifications recorded, pruning keeps the newest, DB errors never raise.
+* **UI**: rule dialog validation and partner/health lock; add/edit/delete/reorder/cancel rules;
+  disabling a rule reaches the live engine; restore example rules; preview sliders (solo/duo);
+  Healing page follows the active profile; creature priorities (add/validate/remove, feeds OCR
+  matching) and live combat table; combat settings validation; Party page (mode switch, settings,
+  live partner bar incl. low confidence); HUD priority stars/sorting; notifications logged.
+
 ## Phase 3 coverage (85 tests, 210 in total)
 Synthetic screenshots come from `tdc/simulation/synthetic_screen.py` (Tibia-like structure with
 known ground truth: status bars, battle list, party list, pixel-font names, noise, text over bars,

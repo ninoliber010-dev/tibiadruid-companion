@@ -9,7 +9,7 @@ from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import QMenu
 
 from tdc.app_context import AppContext
-from tdc.config.settings import HudSettings, NotificationSettings, PartySettings, RecognitionSettings
+from tdc.config.settings import CombatSettings, HudSettings, NotificationSettings, PartySettings, RecognitionSettings
 from tdc.core.events import Topic
 from tdc.core.models import Notification, RecognitionState
 from tdc.ui.hud.sound import SoundPlayer
@@ -26,7 +26,7 @@ class HudController(QObject):
     visibility_changed = Signal(bool)
     open_main_window = Signal()
 
-    def __init__(self, ctx: AppContext, rules_provider) -> None:
+    def __init__(self, ctx: AppContext, rules_provider, priorities_provider=lambda: {}) -> None:
         super().__init__()
         self.ctx = ctx
         self.vm = HudViewModel(
@@ -36,6 +36,8 @@ class HudController(QObject):
             profile_name=self._profile_name,
             partner_name=lambda: ctx.config.get(PartySettings).partner_name,
             stale_after=lambda: max(2.0, 4 * ctx.config.get(RecognitionSettings).interval_ms / 1000),
+            priorities=priorities_provider,
+            sort_by_priority=lambda: ctx.config.get(CombatSettings).sort_by_priority,
         )
         self.window = HudWindow()
         self.sound = SoundPlayer(ctx.paths.root / "sounds")
@@ -104,7 +106,7 @@ class HudController(QObject):
         if section == "hud":
             self.window.apply_settings(self.ctx.config.get(HudSettings))
             self.render(force=True)
-        elif section in ("party", "recognition", "general"):
+        elif section in ("party", "recognition", "general", "combat", "creatures"):
             self.vm.dirty = True
 
     def _save_geometry(self, x: int, y: int, w: int, h: int) -> None:

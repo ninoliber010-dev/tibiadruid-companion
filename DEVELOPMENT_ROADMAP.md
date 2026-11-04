@@ -63,14 +63,19 @@ its features are implemented **and** tested.
   excluding Windows capture time.
 - Pending on Windows: real client colours/layout, DPI scaling, capture timing, Tesseract backend.
 
-## Phase 4 — Recommendation Systems
+## Phase 4 — Recommendation Systems ✅
 - [x] Healing engine core (self + partner rules, priorities, solo/duo) — done in Phase 2
-- [ ] Healing rule editor UI (add/edit/reorder/disable rules per profile)
-- [ ] Potion recommendations and low-mana warnings
-- [ ] Combat assistant: creature list, priorities, health trends, informational hints
-- [ ] Duo monitoring with separate thresholds
-- [ ] Healing/Combat/Party pages with rule editors and live preview
-- [ ] Recommendation events recorded in `event_log`
+- [x] Healing Assistant page: rule table per profile (enable toggle, add/edit dialog with validation and
+      spell/potion suggestions, delete, reorder, restore example rules), "Try it" sliders, live list
+- [x] Potion recommendations and low-mana warnings (potion/warning rule types)
+- [x] Combat assistant: creature list sorted by priority, health trend (%/s) and time-to-0 %,
+      attacked creature, crowd warning/critical, priority-creature announcements — information only
+- [x] Combat Assistant page: live table, creature-priority editor (also feeds OCR name matching),
+      combat settings
+- [x] Party Settings page: mode switch, live partner bar, partner settings, partner-only rule editor
+- [x] RecommendationHub combines healing + combat into one list per reading (correct alert de-duplication)
+- [x] HUD: ★ priority creatures shown first (configurable)
+- [x] Every shown notification recorded in `event_log` (pruned to 50 000 rows)
 
 ## Phase 5 — Route Manager
 - [ ] Folders, routes, waypoints (UUID, order, coordinates/floor, notes, screenshot)

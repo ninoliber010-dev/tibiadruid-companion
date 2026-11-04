@@ -52,7 +52,21 @@ alerts still show if "Critical alerts ignore quiet mode" is on). Sound files are
 `<data folder>\sounds\` on first start.
 
 ## Party
-Partner name, monitor partner (duo), partner position in the party list (1–10).
+Partner name, monitor partner (duo), partner position in the party list (1–10). Also editable on
+the Party Settings page.
+
+## Combat
+| Setting | Default | Range |
+|---|---|---|
+| Crowd warning at | 5 creatures | 2–30 |
+| Crowd critical at | 8 creatures | 2–40, must be above the warning |
+| Announce priority creatures | on | |
+| Announce from priority | 5 | 1–10 |
+| Sort creatures by priority in the HUD | on | |
+| Health trend window | 3 s | 1–15 s |
+
+Creature priorities (−10…10) are stored in `creature_priorities`; their names are also used to
+correct OCR'd creature names.
 
 ## Healing profiles
 Two profiles are created on first start — **Solo** and **Duo** — with *example* Elder Druid rules.
@@ -68,5 +82,4 @@ They are starting points, not advice; verify spell names and adjust every thresh
 | Duo | partner | spell | Exura Sio | health | 70 % | elevated |
 | Duo | partner | warning | Partner critical | health | 35 % | critical |
 
-These rules already drive the HUD recommendations (try them with the simulation). The rule
-editor arrives in Phase 4.
+Edit them on the Healing Assistant page (partner rules also on Party Settings).

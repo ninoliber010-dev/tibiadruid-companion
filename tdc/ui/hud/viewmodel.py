@@ -92,7 +92,11 @@ class HudViewModel:
         partner_name: Callable[[], str] = lambda: "",
         stale_after: Callable[[], float] = lambda: 2.0,
         clock: Callable[[], float] = time.time,
+        priorities: Callable[[], dict[str, int]] = lambda: {},
+        sort_by_priority: Callable[[], bool] = lambda: False,
     ) -> None:
+        self._priorities = priorities
+        self._sort_by_priority = sort_by_priority
         self._min_conf = min_confidence
         self._rules = rules
         self._mode = mode
@@ -190,12 +194,17 @@ class HudViewModel:
         elif r.creatures_confidence < self._min_conf():
             note = "creature recognition below confidence threshold" if r.creatures else "no creature data"
         else:
+            prios = {k.lower(): v for k, v in self._priorities().items()}
             for c in sorted(r.creatures, key=lambda c: c.slot):
                 hp = c.health.value if c.health.confidence >= self._min_conf() else None
-                name = c.name if c.name and c.name_confidence >= self._min_conf() else "Unrecognized"
+                known = c.name and c.name_confidence >= self._min_conf()
+                name = c.name if known else "Unrecognized"
                 creatures.append(CreatureRow(name, hp, pct(hp) if hp is not None else "—",
                                              self._trends.get((c.slot, c.name or ""), ""),
+                                             priority=prios.get(name.lower(), 0) if known else 0,
                                              targeted=c.targeted))
+            if self._sort_by_priority():
+                creatures.sort(key=lambda row: -row.priority)   # stable: keeps list order within a priority
             summary = str(len(creatures))
 
         recs = [] if stale else [RecRow(x.priority, x.text, x.reason)

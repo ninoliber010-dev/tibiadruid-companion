@@ -103,14 +103,15 @@ class CreatureRowWidget(QWidget):
         self.health_text = "—"
         self.trend = ""
         self.targeted = False
+        self.priority = 0
         self.scale = 1.0
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
     def set_row(self, name: str, health: float | None, health_text: str, trend: str,
-                targeted: bool = False) -> None:
-        new = (name, health, health_text, trend, targeted)
-        if new != (self.name, self.health, self.health_text, self.trend, self.targeted):
-            self.name, self.health, self.health_text, self.trend, self.targeted = new
+                targeted: bool = False, priority: int = 0) -> None:
+        new = (name, health, health_text, trend, targeted, priority)
+        if new != (self.name, self.health, self.health_text, self.trend, self.targeted, self.priority):
+            self.name, self.health, self.health_text, self.trend, self.targeted, self.priority = new
             self.update()
 
     def sizeHint(self) -> QSize:  # noqa: N802
@@ -135,9 +136,11 @@ class CreatureRowWidget(QWidget):
             p.setBrush(QColor(C.RED))
             p.drawRoundedRect(QRectF(0, h * 0.25, 3, h * 0.5), 1.5, 1.5)
             indent = 7.0
-        p.setPen(QColor(C.TEXT if self.name != "Unrecognized" else C.TEXT_MUTED))
+        label = f"★ {self.name}" if self.priority > 0 else self.name
+        color = C.AMBER if self.priority > 0 else (C.TEXT if self.name != "Unrecognized" else C.TEXT_MUTED)
+        p.setPen(QColor(color))
         p.drawText(QRectF(indent, 0, name_w - indent, h), Qt.AlignLeft | Qt.AlignVCenter,
-                   p.fontMetrics().elidedText(self.name, Qt.ElideRight, int(name_w - indent - 4)))
+                   p.fontMetrics().elidedText(label, Qt.ElideRight, int(name_w - indent - 4)))
         bar_x, bar_w, bar_h = name_w, w * 0.30, 5 * s
         y = (h - bar_h) / 2
         p.setPen(Qt.NoPen)

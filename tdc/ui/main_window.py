@@ -14,9 +14,12 @@ from tdc.app_context import AppContext
 from tdc.config.settings import GeneralSettings
 from tdc.core.events import Topic
 from tdc.ui.icons import app_icon
+from tdc.ui.pages.combat import CombatPage
 from tdc.ui.pages.configuration import ConfigurationPage
 from tdc.ui.pages.dashboard import DashboardPage
 from tdc.ui.pages.diagnostics import DiagnosticsPage
+from tdc.ui.pages.healing import HealingPage
+from tdc.ui.pages.party import PartyPage
 from tdc.ui.pages.recognition import RecognitionPage
 from tdc.ui.widgets import Page, PlaceholderPage
 
@@ -30,19 +33,9 @@ def build_pages(ctx: AppContext, services=None) -> dict[str, Page]:
     return {
         "Dashboard": DashboardPage(ctx, services),
         "Visual Recognition": RecognitionPage(ctx, services),
-        "Combat Assistant": PlaceholderPage(
-            "Combat Assistant", "Recognized creatures and informational combat hints.", 4,
-            ["Creature list with names, health and health trend",
-             "Configurable creature priorities", "Informational recommendations only — no targeting"]),
-        "Healing Assistant": PlaceholderPage(
-            "Healing Assistant", "Threshold-based healing and potion recommendations.", 4,
-            ["Edit spell, potion and warning rules per Solo/Duo profile",
-             "Default example rules are already stored in the database",
-             "Live recommendation preview using simulated readings"]),
-        "Party Settings": PlaceholderPage(
-            "Party Settings", "Duo partner monitoring.", 4,
-            ["Partner health thresholds separate from your own",
-             "Partner recognition from the party list", "Separate duo session statistics"]),
+        "Combat Assistant": CombatPage(ctx, services),
+        "Healing Assistant": HealingPage(ctx, services),
+        "Party Settings": PartyPage(ctx, services),
         "Route Manager": PlaceholderPage(
             "Route Manager", "Plan and annotate hunting routes.", 5,
             ["Folders, routes and ordered waypoints", "Notes and screenshot references",

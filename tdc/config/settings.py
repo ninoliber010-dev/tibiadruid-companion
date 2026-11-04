@@ -211,6 +211,27 @@ class PartySettings(SettingsSection):
     partner_slot: int = setting(1, "Partner position in party list", min=1, max=10)
 
 
+@dataclass
+class CombatSettings(SettingsSection):
+    SECTION: ClassVar[str] = "combat"
+    TITLE: ClassVar[str] = "Combat"
+
+    crowd_elevated: int = setting(5, "Crowd warning at", "Number of creatures in the battle list for an elevated warning",
+                                  min=2, max=30, suffix=" creatures")
+    crowd_critical: int = setting(8, "Crowd critical at", min=2, max=40, suffix=" creatures")
+    alert_priority_creatures: bool = setting(True, "Announce priority creatures",
+                                             "Tell me when a creature with a priority of at least the value below appears")
+    priority_alert_min: int = setting(5, "Announce from priority", min=1, max=10)
+    sort_by_priority: bool = setting(True, "Sort creatures by priority in the HUD")
+    trend_window_s: float = setting(3.0, "Health trend window", "Time span used for creature health trends",
+                                    min=1.0, max=15.0, step=0.5, suffix=" s")
+
+    def _extra_validation(self) -> dict[str, str]:
+        if self.crowd_critical <= self.crowd_elevated:
+            return {"crowd_critical": "must be greater than the crowd warning"}
+        return {}
+
+
 ALL_SECTIONS: tuple[type[SettingsSection], ...] = (
-    GeneralSettings, HudSettings, RecognitionSettings, NotificationSettings, PartySettings,
+    GeneralSettings, HudSettings, RecognitionSettings, NotificationSettings, PartySettings, CombatSettings,
 )

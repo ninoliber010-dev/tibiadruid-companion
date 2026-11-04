@@ -1,6 +1,6 @@
 # Tibia Druid Companion — Architecture
 
-Status: **Phases 1–3 implemented** (foundation, floating HUD, visual recognition). Later sections describe the target design;
+Status: **Phases 1–4 implemented** (foundation, floating HUD, visual recognition, recommendation systems). Later sections describe the target design;
 anything not yet built is marked with its phase.
 
 ---
@@ -95,9 +95,11 @@ it behaves like a screen-recording + notes tool.
 | 1 | Desktop app | `tdc/ui/` (`main_window.py`, `pages/`) | Navigation, all configuration pages | 1 (shell), filled per phase |
 | 2 | Floating HUD | `tdc/ui/hud/` (`viewmodel.py` Qt-free, `window.py`, `widgets.py`, `controller.py`, `sound.py`) | Overlay window, view-model | **2** |
 | 3 | Recognition engine | `tdc/recognition/` (`window.py`, `capture.py`, `geometry.py`, `analyzers/`, `ocr/`, `creatures.py`, `engine.py` Qt-free; `service.py` worker thread; `validator.py`) | Window lookup, capture, bar/battle-list analysis, OCR, confidence | **3** |
-| 4 | Combat assistant | `tdc/assistants/combat.py` | Creature list, priorities, health deltas, info recommendations | 4 |
-| 5 | Healing assistant | `tdc/assistants/healing.py` | Threshold → recommendation engine (self & partner) | core **2**, editor 4 |
-| 6 | Party assistant | `tdc/assistants/party.py` | Solo/duo profile, partner monitoring | 4 |
+| 4 | Combat assistant | `tdc/assistants/combat.py` | Creature list, priorities, health trends, info recommendations | **4** |
+| 5 | Healing assistant | `tdc/assistants/healing.py`, `defaults.py`; UI `ui/rule_editor.py`, `ui/pages/healing.py` | Threshold → recommendation engine (self & partner) | **2 + 4** |
+| 6 | Party assistant | partner rules in `healing.py`, partner reading in `recognition/engine.py`, UI `ui/pages/party.py` | Solo/duo profile, partner monitoring | **4** |
+| — | Recommendation hub | `tdc/assistants/hub.py` | Runs all assistants per reading, publishes one combined list | **4** |
+| — | Event recorder | `tdc/notifications/recorder.py` | Stores every shown notification in `event_log` | **4** |
 | 7 | Route manager | `tdc/routes/` | Routes, folders, waypoints, import/export | 5 |
 | 8 | Analytics | `tdc/analytics/` | Sessions, XP/h, supplies, profit, reliability tags | 6 |
 | 9 | Notifications | `tdc/notifications/` | Priority, cooldown, dedupe, quiet mode, sounds | **2** |
@@ -133,7 +135,8 @@ Rules that keep modules independent:
 4. The **ReadingValidator** applies the confidence threshold and short temporal smoothing
    (median of last N frames, reject physically impossible jumps) and publishes
    `Topic.READING_VALIDATED`. Low-confidence measurements are passed on as *unavailable*.
-5. **Assistants** subscribe to validated readings and publish `Recommendation`s
+5. **Assistants** (run together by the `RecommendationHub`, which publishes one combined list per
+   reading) turn validated readings into `Recommendation`s
    (`Topic.RECOMMENDATIONS`), e.g. `Recommendation(priority=ELEVATED, text="Cast Exura Vita",
    reason="Health 58% < 60%")`.
 6. The **NotificationManager** turns new/escalated recommendations into toasts + sounds,

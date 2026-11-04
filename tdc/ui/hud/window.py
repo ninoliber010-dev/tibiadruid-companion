@@ -340,7 +340,7 @@ class HudWindow(QWidget):
         for i, w in enumerate(self.creature_rows):
             if i < len(st.creatures):
                 c = st.creatures[i]
-                w.set_row(c.name, c.health, c.health_text, c.trend, c.targeted)
+                w.set_row(c.name, c.health, c.health_text, c.trend, c.targeted, c.priority)
                 w.setVisible(True)
             else:
                 w.setVisible(False)
